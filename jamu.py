@@ -1,60 +1,39 @@
 import streamlit as st
+from streamlit_option_menu import option_menu
 
-# Fungsi untuk membuat menu di bagian atas
-def top_menu():
-    st.sidebar.title("Menu")
+# Sidebar menu
+with st.sidebar:
+    selected = option_menu("Main Menu", ["Dashboard", 'Data', 'Method', 'Forecast'], 
+        icons=['house', 'files','calculator','code'], menu_icon="cast", default_index=0)
+    selected
 
-    selected_menu = st.sidebar.selectbox("Select Menu", ["Menu 1", "Menu 2"])
+# Manual item selection
+if st.session_state.get('switch_button', False):
+    st.session_state['menu_option'] = (st.session_state.get('menu_option', 0) + 1) % 4
+    manual_select = st.session_state['menu_option']
+else:
+    manual_select = None
 
-    if selected_menu == "Menu 1":
-        menu_1()
-    elif selected_menu == "Menu 2":
-        menu_2()
+# Add on_change callback
+def on_change(key):
+    selection = st.session_state[key]
+    st.write(f"Selection changed to {selection}")
 
-# Fungsi untuk menu 1
-def menu_1():
-    st.markdown("### Menu 1")
-    st.markdown("- [Home](#Home)")
-    st.markdown("- [About](#About)")
-    st.markdown("- [Contact](#Contact)")
-
-# Fungsi untuk menu 2
-def menu_2():
-    st.markdown("### Menu 2")
-    st.markdown("- [FAQ](#FAQ)")
-    st.markdown("- [Services](#Services)")
-    st.markdown("- [Blog](#Blog)")
-
-# Fungsi untuk halaman Home
-def home():
-    st.title("Home")
-    st.write("Welcome to the Home Page")
-
-# Fungsi untuk halaman About
-def about():
-    st.title("About")
-    st.write("This is the About Page")
-
-# Fungsi untuk halaman Contact
-def contact():
-    st.title("Contact")
-    st.write("Contact us at example@example.com")
-
-# Tampilan utama
-def main():
-    st.sidebar.title("Jamu Madura")
-
-    top_menu()  # Menampilkan menu di bagian atas
-
-    # Content
-    st.title("Main Content")  # Judul konten utama
-
-    menu = """
-    ### Home
-    [About](#About)
-    [Contact](#Contact)
+# Add CSS directly to the body element
+st.markdown(
     """
-    st.markdown(menu, unsafe_allow_html=True)
+    <style>
+    body {
+        background-image: linear-gradient(to bottom right, #ff0099, #493240);
+        background-size: cover;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-if __name__ == "__main__":
-    main()
+# Add your content
+st.write("haaaaaiiii")
