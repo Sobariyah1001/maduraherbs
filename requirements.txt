@@ -7,3 +7,5 @@ numpy
 altair
 Pillow
 joblib
+matplotlib
+plotly.express
