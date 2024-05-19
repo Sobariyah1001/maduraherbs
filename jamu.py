@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import plotly.express as px
+import pickle
 
 data = pd.read_csv("https://raw.githubusercontent.com/Sobariyah1001/dataset/main/dataset_jamu_359.csv")
 data_clear = pd.read_csv("https://raw.githubusercontent.com/Sobariyah1001/maduraherbs/main/dataset/data_clear.csv")
@@ -13,6 +14,25 @@ vif = pd.read_csv("https://raw.githubusercontent.com/Sobariyah1001/maduraherbs/m
 distance = pd.read_csv("https://raw.githubusercontent.com/Sobariyah1001/maduraherbs/main/dataset/distance.csv")
 outlier = pd.read_csv("https://raw.githubusercontent.com/Sobariyah1001/maduraherbs/main/dataset/dfkmeans.csv")
 # data = [1,2,3,4]
+
+def ma_forecast(residuals, parameters, steps):
+    if not isinstance(residuals, pd.Series):
+        residuals = pd.Series(residuals)
+    
+    n = len(parameters) - 1  # Jumlah lag residuals
+    forecast = []
+    
+    for i in range(steps):
+        intercept = parameters[0]  # Mulai dengan intercept
+        for j in range(1, n + 1):
+            if len(residuals) - j >= 0:
+                intercept += parameters[j] * residuals.iloc[-j]
+        forecast.append(intercept)
+        residuals = pd.concat([residuals, pd.Series([0])], ignore_index=True)  # Tambahkan nol untuk langkah masa depan
+    
+    return forecast
+
+
 st.markdown(
         """
         <h2 style="text-align: justify; color:#4186a2;">Prediksi Produksi Jamu Madura Menggunakan <i>Autoregressive Integrated Moving Average </i> (ARIMA) Dengan <i>Statistical Significance</i> dan <i>K-Means Clustering</i></h2>
@@ -435,13 +455,67 @@ elif selected == "Method":
         st.markdown(
         """
         <div style="text-align: justify; text-indent: 30px;">
-            <p>Setelah melakukan split dataset, didapatkan model terbaik terdapat pada fold 2 dengan rincian sebagai berikut:</p>
+            <p>Setelah melakukan split dataset, didapatkan model terbaik yang terdapat pada fold 2 dengan rincian sebagai berikut:</p>
+            <table>
+                <tr>
+                    <th>Fold</th>
+                    <th>Identifikasi</th>
+                    <th>Model Terbaik</th>
+                    <th>MAPE</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>ARIMA(9,0,9)</td>
+                    <td>ARIMA(1,0,9)</td>
+                    <td>15.368</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>ARIMA(0,0,36)</td>
+                    <td>ARIMA(0,0,13)</td>
+                    <td>10.252</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>ARIMA(11,0,36)</td>
+                    <td>ARIMA(2, 0, 13)</td>
+                    <td>30.933</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>ARIMA(11,0,3)</td>
+                    <td>ARIMA(3, 0, 2)</td>
+                    <td>42.375</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>ARIMA(4,1,1)</td>
+                    <td>ARIMA(4,1,0)</td>
+                    <td> 99.785</td>
+                </tr>
+            </table>
+            <p>Dari kelima fold tersebut, model terbaik terletak pada fold 2 dengan model ARIMA(0,0,13). Model tersebut selanjutnya digunakan untuk prediksi masa depan</p>
         </div>
         """, unsafe_allow_html=True)
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 elif selected == "Forecast":
-    st.write("This is the Forecast content.")
+    steps = st.number_input("Masukkan jumlah langkah prediksi ke depan:", min_value=1, max_value=100, value=10)
 
+    if st.button("Prediksi"):
+        # Load residuals dan parameter dari file pickle
+        pickle_filename = 'model_arima.pkl'
+        with open(pickle_filename, 'rb') as f:
+            model_data = pickle.load(f)
+
+        residuals = model_data['residuals']
+        parameters = model_data['parameter']
+
+        # Lakukan prediksi
+        prediksi = ma_forecast(residuals, parameters, steps)
+
+        # Tampilkan hasil prediksi
+        st.write(f"Prediksi {steps} langkah ke depan:")
+        st.write(prediksi)
 # Manual item selection
 # if st.session_state.get('switch_button', False):
 #     st.session_state['menu_option'] = (st.session_state.get('menu_option', 0) + 1) % 4
