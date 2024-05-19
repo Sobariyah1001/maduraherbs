@@ -9,3 +9,4 @@ Pillow
 joblib
 matplotlib
 plotly.express
+pickle
